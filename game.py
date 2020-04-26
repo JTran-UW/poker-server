@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, choice
 
 class Game:
     def __init__(self, players, cards):
@@ -22,6 +22,17 @@ class Game:
         player.update_balance(-amount)
         player.bet += amount
         self.pot += amount
+
+    def show_card(self, temp_cards, n):
+        choices = list()
+
+        for num in range(n):
+            c = choice(temp_cards)
+            choices.append(c)
+            temp_cards.remove(c)
+        
+        self.cards = temp_cards
+        return [choices, temp_cards]
 
     def start_round(self, first, blinds):
         """
@@ -59,8 +70,13 @@ class Game:
         self.pay(self.small_blind, blinds[0])
         self.pay(self.big_blind, blinds[1])
 
-        player_list = [person for person in self.players if person.status == "Active"]
+        player_list = [person for person in self.players if person.status]
         player_list = self.starter(player_list)
+
+        # Give out cards
+        for player in self.active:
+            hand = player.get_cards(self.cards)
+            self.cards = hand
 
         return player_list
 
@@ -158,8 +174,13 @@ class Game:
                 res = self.call_raise(person, self.ante)
                 self.pay(person, res[0]) # Person pays the amount
                 self.ante += res[1]
+            
+            # Return if all have folded
+            self.active = [person for person in self.active if person.status] 
+            self.not_paid = [person for person in self.active if person.bet != self.ante]
+            self.result = {"active": self.active, "not_paid": self.not_paid, "ante": self.ante}
 
-        self.active = [person for person in self.players if person.status == "Active"]
-        self.not_paid = [person for person in self.players if person.bet != self.ante]
+            if len(self.active) == 1:
+                return self.result
 
-        return {"active": self.active, "not_paid": self.not_paid, "ante": self.ante}
+        return self.result
