@@ -1,6 +1,7 @@
 from card import Card
 from game import Game
 from player import Player
+from table import Table
 
 # ===================================================== STAGE 1: SETUP ===========================================
 
@@ -24,6 +25,7 @@ b = (100, 200)
 
 # Activate game
 g = Game(p, cards)
+t = Table()
 not_paid = g.start_round(True, b)
 cards = g.cards
 active = not_paid
@@ -52,13 +54,13 @@ while g.round_num < 5 and len(active) > 1:
     
     # Get the cards to table
     if g.round_num == 2:
-        show = g.show_card(cards, 3)
+        show = t.show_card(cards, 3)
         show_name = "flop"
     elif g.round_num == 3:
-        show = g.show_card(cards, 1)
+        show = t.show_card(cards, 1)
         show_name = "turn"
-    else:
-        show = g.show_card(cards, 1)
+    elif g.round_num == 4:
+        show = t.show_card(cards, 1)
         show_name = "river"
 
     # Print the cards
@@ -76,8 +78,16 @@ while g.round_num < 5 and len(active) > 1:
 # For a fold-out
 if len(active) == 1:
     winner = active[0]
+else:
+    contenders = dict()
 
+    for player in active:
+        hand = player.hand_value(t.table)
+        contenders[hand[0]] = player
 
+        print(f"{player.name} has {hand[1]} ({hand[2]})")
+    
+    winner_key = max(contenders.keys())
+    winner = contenders[winner_key]
 
 print(f"{winner.name} wins the hand!")
-
