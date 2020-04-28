@@ -10,6 +10,9 @@ class Player:
         self.balance = 10000
         self.bet = 0
 
+        # Hand frequencies
+        self.one
+
     def get_cards(self, temp_cards):
         """
         Picks out a hand from temp_cards
@@ -26,7 +29,23 @@ class Player:
 
         return temp_cards
 
+    def hand_value(self, table):
+        self.cards = table + self.hand
+        self.suits = [card.suit for card in self.cards]
+        self.faces = [card.face for card in self.cards]
+
+        # All hand checks
+        self.flush = 3# TODO FINSIH CHECKS
+
+
+        # Check for straight-flush
+        if self.flush:
+            pass
+
     def zero_bets(self):
+        """
+        Zero out bet
+        """
         self.bet = 0
 
     def update_balance(self, amount):

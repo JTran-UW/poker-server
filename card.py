@@ -5,7 +5,7 @@ class Card:
         """
         self.face = face
         self.suit = suit
-
+        
         # Write name
         if self.face == 11:
             self.face_name = "jack"
