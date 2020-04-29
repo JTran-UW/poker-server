@@ -151,7 +151,6 @@ class Game:
         # Important variables
         self.active = active
         self.ante = ante
-        self.round_num += 1
 
         # Run round of betting
         for person in self.active:
@@ -165,10 +164,10 @@ class Game:
                 self.ante += res[1]
             
             # Return if all have folded
-            self.active = [person for person in self.active if person.status] 
+            self.active = [person for person in self.players if person.status]
             self.not_paid = [person for person in self.active if person.bet != self.ante]
             self.result = {"active": self.active, "not_paid": self.not_paid, "ante": self.ante}
-
+    
             if len(self.active) == 1:
                 return self.result
 

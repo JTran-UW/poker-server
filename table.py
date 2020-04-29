@@ -11,6 +11,7 @@ class Table:
             c = choice(temp_cards)
             temp_cards.remove(c)
             self.table.append(c)
+            choices.append(c)
         
         self.cards = temp_cards
         return [choices, temp_cards]

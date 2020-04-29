@@ -34,10 +34,14 @@ active = not_paid
 
 # Keep playing rounds while the 5th street hasn't been shown / there are more than 1 players
 while g.round_num < 5 and len(active) > 1:
-    print(f"Round #{g.round_num}")
+    print(f"\nRound #{g.round_num}")
 
     # Important variables
-    ante = b[1]
+    if g.round_num == 1:
+        ante = b[1]
+    else:
+        ante = 0
+    g.round_num += 1
     not_paid = active
 
     # ================================================== STAGE 3: RUN BETTING =============================================================
@@ -51,7 +55,7 @@ while g.round_num < 5 and len(active) > 1:
 
         # Player who haven't folded / paid the ante
         not_paid = [person for person in active if person in not_paid]
-    
+
     # Get the cards to table
     if g.round_num == 2:
         show = t.show_card(cards, 3)
@@ -68,10 +72,16 @@ while g.round_num < 5 and len(active) > 1:
         choices = show[0]
         cards = show[1]
 
-        print(f"The {show_name}: ", end="")
-        for card in choices:
-            print(card.name, end=", ")
-        
+        print(f"\nThe {show_name}: ", end="")
+        for i, card in enumerate(choices):
+            if i == len(choices) - 1:
+                print(card.name)
+            else:
+                print(card.name, end=", ")
+    
+    # Zero the bets
+    for person in active:
+        person.zero_bets()
 
 # ====================================================== STAGE 4: DETERMINE THE WINNER ======================================================
 
@@ -85,7 +95,10 @@ else:
         hand = player.hand_value(t.table)
         contenders[hand[0]] = player
 
-        print(f"{player.name} has {hand[1]} ({hand[2]})")
+        print(f"{player.name} has {hand[1]} (", end="")
+        for card in hand[2][:-1]:
+            print(card, end=", ")
+        print(f"{hand[2][-1]})")
     
     winner_key = max(contenders.keys())
     winner = contenders[winner_key]

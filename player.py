@@ -27,6 +27,21 @@ class Player:
 
         return temp_cards
 
+    def face_translation(self, n):
+        # Write name
+        if n == 11:
+            face_name = "jack"
+        elif n == 12:
+            face_name = "queen"
+        elif n == 13:
+            face_name = "king"
+        elif n == 14:
+            face_name = "ace"
+        else:
+            face_name = n
+        
+        return face_name
+
     def hand_value(self, table):
         self.cards = table + self.hand
 
@@ -39,7 +54,15 @@ class Player:
             # Important variables
             combo_nums = [card.face for card in combo]
             combo_suits = [card.suit for card in combo]
+
+            # Write tie-breaking sums
             high_card = max(combo_nums)
+            nums_descending = combo_nums
+            nums_descending.sort(reverse = True)
+            tie_break = [10**(-1 * i) * num for i, num in enumerate(nums_descending)]
+            tie_break = sum(tie_break)
+
+            # Get repetition of certain numbers
             rep_count = [combo_nums.count(num) for num in set(combo_nums)]
             order = range(min(combo_nums), max(combo_nums))
 
@@ -54,39 +77,33 @@ class Player:
 
             # Hand value
             if straight and flush:
-                values[800 + high_card] = combo
-                top_hand = "straight-flush"
+                values[800 + tie_break] = [combo, "a straight-flush"]
             elif four_of_a_kind:
-                values[700 + high_card] = combo
-                top_hand = "four-of-a-kind"
+                values[700 + tie_break] = [combo, "a four-of-a-kind"]
             elif full_house:
-                values[600 + high_card] = combo
-                top_hand = "full-house"
+                values[600 + tie_break] = [combo, "a full-house"]
             elif flush:
-                values[500 + high_card] = combo
-                top_hand = "flush"
+                values[500 + tie_break] = [combo, "a flush"]
             elif straight:
-                values[400 + high_card] = combo
-                top_hand = "straight"
+                values[400 + tie_break] = [combo, "a straight"]
             elif three_of_a_kind:
-                values[300 + high_card] = combo
-                top_hand = "three-of-a-kind"
+                values[300 + tie_break] = [combo, "a three-of-a-kind"]
             elif two_pair:
-                values[200 + high_card] = combo
-                top_hand = "two-pair"
+                values[200 + tie_break] = [combo, "a two-pair"]
             elif pair:
-                values[100 + high_card] = combo
-                top_hand = "pair"
+                values[100 + tie_break] = [combo, "a pair"]
             else:
-                values[high_card] = combo
-                top_hand = f"{high_card} high"
+                values[tie_break] = [combo, f"{self.face_translation(high_card)} high"]
         
         # Determine the best combo
         top_hand_key = max(values.keys())
         top_combo = values[top_hand_key]
-        top_combo = [card.name for card in top_combo]
+        top_combo_cards = top_combo[0]
+        top_combo_name = top_combo[1]
 
-        return [top_hand_key, top_hand, top_combo]
+        top_combo = [card.name for card in top_combo_cards]
+
+        return [top_hand_key, top_combo_name, top_combo]
 
     def zero_bets(self):
         """
