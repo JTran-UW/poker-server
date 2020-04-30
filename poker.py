@@ -12,7 +12,7 @@ for name in names:
     p.append(Player(name))
 
 # Generate cards
-nums = list(range(2, 15))
+nums = [0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8]
 suits = ["diamonds", "hearts", "spades", "clubs"]
 cards = list()
 
@@ -85,22 +85,30 @@ while g.round_num < 5 and len(active) > 1:
 
 # ====================================================== STAGE 4: DETERMINE THE WINNER ======================================================
 
+print("\n")
+
 # For a fold-out
 if len(active) == 1:
     winner = active[0]
+
+# Go to the hands for a decision
 else:
     contenders = dict()
 
     for player in active:
+        # Get each players hand values
         hand = player.hand_value(t.table)
         contenders[hand[0]] = player
 
+        # Print the hand values
         print(f"{player.name} has {hand[1]} (", end="")
         for card in hand[2][:-1]:
             print(card, end=", ")
         print(f"{hand[2][-1]})")
     
+    # Determine who had the best hand
     winner_key = max(contenders.keys())
     winner = contenders[winner_key]
 
+# Print the winner
 print(f"{winner.name} wins the hand!")
