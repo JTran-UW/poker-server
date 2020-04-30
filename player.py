@@ -48,6 +48,12 @@ class Player:
         return face_name
 
     def rep_counter(self, obj, n):
+        """
+        Finds objects that repeat
+        obj: iterative object
+        n: how many times object repeats
+        return: object that repeats n times in obj
+        """
         counter = list()
 
         for item in set(obj):
@@ -133,7 +139,7 @@ class Player:
                 two_count = self.rep_counter(combo_nums, 2)[0]
                 tie_break += two_count * 10
                 values[1000 + tie_break] = [combo, "a pair"]
-                
+
             else:
                 values[tie_break] = [combo, f"{self.face_translation(high_card)} high"]
         
