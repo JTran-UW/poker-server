@@ -8,8 +8,10 @@ class Player:
         """
         self.name = name
         self.status = True
+        self.all_in = False
         self.balance = 10000
         self.bet = 0
+        self.total = 0
 
     def get_cards(self, temp_cards):
         """
@@ -173,4 +175,5 @@ class Player:
         Return: None
         """
         self.status = False
+        self.all_in = False
         self.hand = []

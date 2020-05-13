@@ -29,6 +29,7 @@ t = Table()
 not_paid = g.start_round(True, b)
 cards = g.cards
 active = not_paid
+all_in = list()
 
 # =================================================== STAGE 2: PLAY ONE ROUND ==========================================================
 
@@ -42,7 +43,7 @@ while g.round_num < 5 and len(active) > 1:
     else:
         ante = 0
     g.round_num += 1
-    not_paid = active
+    not_paid = [person for person in active if person not in all_in]
 
     # ================================================== STAGE 3: RUN BETTING =============================================================
     while len(not_paid) > 0:
@@ -50,11 +51,13 @@ while g.round_num < 5 and len(active) > 1:
         # Run betting
         betting = g.run_betting(ante, not_paid)
         active = betting["active"]
+        all_in = betting["all_in"]
         not_paid = betting["not_paid"]
         ante = betting["ante"]
 
         # Player who haven't folded / paid the ante
         not_paid = [person for person in active if person in not_paid]
+        not_paid = [person for person in not_paid if person not in all_in]
 
     # Get the cards to table
     if g.round_num == 2:
@@ -66,6 +69,9 @@ while g.round_num < 5 and len(active) > 1:
     elif g.round_num == 4:
         show = t.show_card(cards, 1)
         show_name = "river"
+    elif g.round_num == 5:
+        if g.pot != 0:
+            g.pots[g.pot/len(active)] = g.pot
 
     # Print the cards
     if g.round_num < 5:
@@ -90,25 +96,33 @@ print("\n")
 # For a fold-out
 if len(active) == 1:
     winner = active[0]
+    pot_total = g.pot
+    print(f"{winner.name} wins {pot_total}")
 
 # Go to the hands for a decision
 else:
-    contenders = dict()
+    # Loop through pots
+    for i, pot in enumerate(g.pots):
+        contenders = dict()
+        eligible = [player for player in active if player.total >= pot]
 
-    for player in active:
-        # Get each players hand values
-        hand = player.hand_value(t.table)
-        contenders[hand[0]] = player
+        for player in active:
+            # Get each players hand values
+            hand = player.hand_value(t.table)
+            contenders[hand[0]] = player
 
-        # Print the hand values
-        print(f"{player.name} has {hand[1]} (", end="")
-        for card in hand[2][:-1]:
-            print(card, end=", ")
-        print(f"{hand[2][-1]})")
-    
-    # Determine who had the best hand
-    winner_key = max(contenders.keys())
-    winner = contenders[winner_key]
+            # Print the hand values
+            print(f"{player.name} has {hand[1]} (", end="")
+            for card in hand[2][:-1]:
+                print(card, end=", ")
+            print(f"{hand[2][-1]})")
+        
+        # Determine who had the best hand
+        winner_key = max(contenders.keys())
+        winner = contenders[winner_key]
 
-# Print the winner
-print(f"{winner.name} wins the hand!")
+        # Update balances
+        pot_total = g.pots[pot]
+        winner.update_balance(pot_total)
+
+        print(f"{winner.name} wins ${pot_total}!")

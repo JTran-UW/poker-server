@@ -11,6 +11,7 @@ class Game:
         self.player_count = len(players)
         self.cards = cards
         self.round_num = 1
+        self.pots = dict()
 
     def pay(self, player, amount):
         """
@@ -21,6 +22,7 @@ class Game:
         """
         player.update_balance(-amount)
         player.bet += amount
+        player.total += amount
         self.pot += amount
 
     def start_round(self, first, blinds):
@@ -73,7 +75,7 @@ class Game:
         """
         Asks for user to check, bet, or fold.  Returns user input
         player: respective Player object who is up (type: Player)
-        return: integer containing the amount paid (type: int)
+        return: [amount paid, amount the ante is raised by] (type: list)
         """
         # Report player's current bet
         print(f"{player.name}'s turn (${player.bet} bet so far)")
@@ -84,17 +86,21 @@ class Game:
 
             # Comprehend user input
             if user_in == "check":
-                return 0
+                return [0, 0]
             elif user_in == "bet":
                 while True: # Keep asking until answer is valid
                     try:
                         bet = int(input("How much do you want to bet? "))
-                        return bet
+                        # Check if player can pay
+                        if bet <= player.balance:
+                            return [bet, bet]
+                        else:
+                            print("Insufficient balance.")
                     except ValueError:
                         print("Input not understood")
             elif user_in == "fold":
                 player.fold()
-                return 0
+                return [0, 0]
             else:
                 print("Input not understood.")
 
@@ -119,9 +125,35 @@ class Game:
                 while True:
                     try:
                         raise_in = int(input("How much do you want to raise by? "))
-                        return [raise_in + self.ante - player.bet, raise_in]
+                        # Check if player can pay
+                        if raise_in <= player.balance:
+                            return [raise_in + self.ante - player.bet, raise_in]
+                        else:
+                            print("Insufficient balance.")
                     except ValueError:
                         print("Input not understood.")
+            elif user_in == "fold":
+                player.fold()
+                return [0, 0]
+            else:
+                print("Input not understood.")
+        
+    def all_in(self, player):
+        """
+        Asks for user to go all-in, or fold.  Returns user input
+        player: respective Player object who is up (type: Player)
+        return: amount paid (type: int)
+        """
+        # Report player's current bet
+        print(f"{player.name}'s turn (${player.bet} bet so far)")
+
+        while True: # Keep asking until answer is valid
+            # Ask user input
+            user_in = input(f"Go all-in (${player.balance}) or fold? ").lower()
+            
+            # Comprehend user input
+            if user_in == "all-in":
+                return [player.balance, 0]
             elif user_in == "fold":
                 player.fold()
                 return [0, 0]
@@ -154,19 +186,34 @@ class Game:
 
         # Run round of betting
         for person in self.active:
-            if self.ante == person.bet: # Check or bet if the person has already paid the ante
+            # Check or bet
+            if self.ante == person.bet:
                 res = self.check_bet(person)
-                self.pay(person, res)
-                self.ante += res
-            else: # Call or raise if player hasn't paid the ante
+            # All-in
+            elif person.balance <= self.ante:
+                res = self.all_in(person)
+            # Call or raise
+            else:
                 res = self.call_raise(person, self.ante)
-                self.pay(person, res[0]) # Person pays the amount
-                self.ante += res[1]
+            
+            # Person pays the amount
+            self.pay(person, res[0])
+            self.ante += res[1]
+
+            # Create a new pot for all-ins
+            if person.balance == 0:
+                try:
+                    self.pots[person.total] += self.pot
+                except KeyError:
+                    self.pots[person.total] = self.pot
+                self.pot = 0
+                person.all_in = True
             
             # Return if all have folded
             self.active = [person for person in self.players if person.status]
+            self.all_in_ = [person for person in self.players if person.all_in]
             self.not_paid = [person for person in self.active if person.bet != self.ante]
-            self.result = {"active": self.active, "not_paid": self.not_paid, "ante": self.ante}
+            self.result = {"active": self.active, "not_paid": self.not_paid, "ante": self.ante, "all_in": self.all_in_}
     
             if len(self.active) == 1:
                 return self.result
