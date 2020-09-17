@@ -4,7 +4,7 @@
 Opens up game of Texas hold-em poker, plays one round.
 
 ### Objects:
-**Card**  
+**Card**\s\s
 Attributes:  
  - face: card face value (i.e. 2, 3, 4, 5, etc.)
  - suit: card suit value (Spade, Hearts, etc.)
@@ -13,7 +13,7 @@ Attributes:
 
 **Table**  
 Attributes:  
- - table: all cards put on table (flop, river, etc.)  
+ - table: all cards put on table (flop, river, etc.)\s\s
 Methods:    
  - show_card(temp_cards, n)  
     puts n cards on table out of temp_cards
