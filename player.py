@@ -14,9 +14,6 @@ class Player:
         self.total = 0
         if self.name == "Larry":
             self.playable = True
-        elif self.name == "Moe":
-            self.balance = 1000
-            self.playable = False
         else:
             self.playable = False
 

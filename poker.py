@@ -1,7 +1,7 @@
 from game import Game
 from table import Table
 
-# ===================================================== STAGE 1: SETUP ===========================================
+# Setup
 
 # Activate game
 g = Game()
@@ -11,7 +11,7 @@ cards = g.cards
 active = not_paid
 all_in = list()
 
-# =================================================== STAGE 2: PLAY ONE ROUND ==========================================================
+# Play one round
 
 # Keep playing rounds while the 5th street hasn't been shown / there are more than 1 players
 while g.round_num < 5 and len(active) > 1:
@@ -25,7 +25,8 @@ while g.round_num < 5 and len(active) > 1:
     g.round_num += 1
     not_paid = [person for person in active if person not in all_in]
 
-    # ================================================== STAGE 3: RUN BETTING =============================================================
+    # Run betting
+
     while len(not_paid) > 0:
 
         # Run betting
@@ -70,7 +71,7 @@ while g.round_num < 5 and len(active) > 1:
     for person in active:
         person.zero_bets()
 
-# ====================================================== STAGE 4: DETERMINE THE WINNER ======================================================
+# Determine the winner
 
 print("\n")
 
