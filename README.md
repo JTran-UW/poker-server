@@ -13,7 +13,7 @@ Attributes:
 
 **Table**  
 Attributes:  
- - table: all cards put on table (flop, river, etc.)
+ - table: all cards put on table (flop, river, etc.)  
 Methods:    
  - show_card(temp_cards, n)  
     puts n cards on table out of temp_cards
@@ -31,7 +31,7 @@ Attributes:
  - balance: amount of money player has
  - bet: amount of money player has bet during a single round of betting
  - total: total amount of money player has bet during full round
- - playable: status of player as playable or non-playable
+ - playable: status of player as playable or non-playable  
 Methods:  
  - get_cards(temp_cards)  
     Picks out a hand (2 cards) from temp_cards
@@ -52,7 +52,7 @@ Attributes:
  - round_num: the round number
  - pots: list of pots in pot objects
  - pots_i: the index of the current pot
- - blinds: blinds in tuple form, (small blind, big blind)
+ - blinds: blinds in tuple form, (small blind, big blind)  
 Methods:  
  - pay(player, amount)  
     charge some player some amount
