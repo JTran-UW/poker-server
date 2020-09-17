@@ -1,4 +1,4 @@
-from random import sample
+from random import sample, uniform, randrange
 from itertools import combinations
 
 class Player:
@@ -12,6 +12,13 @@ class Player:
         self.balance = 10000
         self.bet = 0
         self.total = 0
+        if self.name == "Larry":
+            self.playable = True
+        elif self.name == "Moe":
+            self.balance = 1000
+            self.playable = False
+        else:
+            self.playable = False
 
     def get_cards(self, temp_cards):
         """
@@ -45,7 +52,7 @@ class Player:
         elif n == 2.8:
             face_name = "ace"
         else:
-            face_name = n * 5
+            face_name = int(n * 5)
         
         return face_name
 
@@ -140,7 +147,8 @@ class Player:
             elif pair:
                 two_count = self.rep_counter(combo_nums, 2)[0]
                 tie_break += two_count * 10
-                values[1000 + tie_break] = [combo, "a pair"]
+                pair_value = self.face_translation(two_count)
+                values[1000 + tie_break] = [combo, f"a pair of {pair_value}s"]
 
             else:
                 values[tie_break] = [combo, f"{self.face_translation(high_card)} high"]
@@ -177,3 +185,55 @@ class Player:
         self.status = False
         self.all_in = False
         self.hand = []
+
+    def non_playable_input(self, intype, ante):
+        """
+        Returns simulated responses to check-bet, call-raise, and all-in inputs
+        intype: type of input required (cb, cr, ai)
+        return: proper response (list/int)
+        """
+        self.seed = uniform(0, 1)
+
+        # If response is check or bet
+        if intype == "cb":
+            # 60% chance of check
+            if self.seed < 0.6:
+                print(f"{self.name} checked")
+                return [0, 0]
+            # 10% chance of bet
+            elif self.seed < 0.7:
+                self.bet_amount = randrange(10) * 100
+                print(f"{self.name} bet ${self.bet_amount}")
+                return [self.bet_amount, self.bet_amount]
+            # 30% chance of fold
+            else:
+                self.fold()
+                print(f"{self.name} folded")
+                return [0,0]
+
+        # If response is call or raise
+        elif intype == "cr":
+            # 60% chance of call
+            if self.seed < 0.6:
+                print(f"{self.name} called")
+                return [ante - self.bet, 0]
+            # 10% chance of raise
+            elif self.seed < 0.6:
+                self.raise_amount = randrange(10) * 100
+                print(f"{self.name} raised by {self.raise_amount}")
+                return [self.raise_amount, self.raise_amount]
+            # 30% chance of fold
+            else:
+                self.fold()
+                print(f"{self.name} folded")
+                return[0, 0]
+        
+        else:
+            # 70% chance of fold
+            if self.seed < 0.7:
+                self.fold()
+                print(f"{self.name} folded")
+                return [0, 0]
+            else:
+                print(f"{self.name} went all-in!")
+                return [self.balance, 0]

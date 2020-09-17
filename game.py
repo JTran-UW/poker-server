@@ -1,17 +1,22 @@
 from random import randint
+from player import Player
+from pot import Pot
+from card import Card
 
 class Game:
-    def __init__(self, players, cards):
+    def __init__(self):
         """
         Create a game \n
         players: list of players, of type player class (type: list) \n
         cards: list of all playable cards
         """
-        self.players = players
-        self.player_count = len(players)
-        self.cards = cards
+        self.players = [Player("Larry"), Player("Moe"), Player("Eric"), Player("Joe")]
+        self.player_count = len(self.players)
+        self.cards = []
         self.round_num = 1
-        self.pots = dict()
+        self.pots = [Pot()]
+        self.pots_i = 0
+        self.blinds = (100, 200)
 
     def pay(self, player, amount):
         """
@@ -23,17 +28,49 @@ class Game:
         player.update_balance(-amount)
         player.bet += amount
         player.total += amount
-        self.pot += amount
+                    
+    def pot_payments(self, payments, active):
+        """
+        Divide up the pot according to payment each round \n
+        payments: amount paid by each person for a whole round (type: list) \n
+        active: all active players by the end of the round (type: list) \n
+        return: None
+        """
+        payments = sorted(payments)
+        payments.insert(0, 0)
 
-    def start_round(self, first, blinds):
+        for i, payment in enumerate(payments):
+            for player in active:
+                if player.bet >= payment:
+                    try:
+                        current_pot = self.pots[self.pots_i + i]
+                    except IndexError:
+                        self.pots.append(Pot())
+                        current_pot = self.pots[self.pots_i + i]
+                    current_pot.amount += (payment - payments[i - 1])
+                    if player not in current_pot.assoc_ps:
+                        current_pot.assoc_ps.append(player)
+
+        payments.pop(0)
+        self.pots_i += len(payments) - 1
+
+    def start_round(self, first):
         """
         Initializes all the important variables in game \n
         first: is this the first round? (type: bool) \n
         blinds: [small blind, big blind] (type: tuple) \n
         return: all active players
         """
+        # Generate cards
+        nums = range(2, 15)
+        nums = [num / 5 for num in nums]
+        suits = ["diamonds", "hearts", "spades", "clubs"]
+
+        for num in nums:
+            for suit in suits:
+                self.cards.append(Card(num, suit))
+
         # Important variables
-        self.pot = 0
         self.player_index = self.player_count - 1
 
         # Choose roles
@@ -58,8 +95,8 @@ class Game:
         print(f"{self.big_blind.name} is the big blind")
 
         # Blinds pay
-        self.pay(self.small_blind, blinds[0])
-        self.pay(self.big_blind, blinds[1])
+        self.pay(self.small_blind, self.blinds[0])
+        self.pay(self.big_blind, self.blinds[1])
 
         player_list = [person for person in self.players if person.status]
         player_list = self.starter(player_list)
@@ -104,7 +141,7 @@ class Game:
             else:
                 print("Input not understood.")
 
-    def call_raise(self, player, ante):
+    def call_raise(self, player):
         """
         Asks for user to call, raise, or fold.  Returns user input
         player: respective Player object who is up (type: Player)
@@ -126,7 +163,7 @@ class Game:
                     try:
                         raise_in = int(input("How much do you want to raise by? "))
                         # Check if player can pay
-                        if raise_in <= player.balance:
+                        if raise_in + self.ante <= player.balance:
                             return [raise_in + self.ante - player.bet, raise_in]
                         else:
                             print("Insufficient balance.")
@@ -153,6 +190,7 @@ class Game:
             
             # Comprehend user input
             if user_in == "all-in":
+                player.all_in = True
                 return [player.balance, 0]
             elif user_in == "fold":
                 player.fold()
@@ -171,6 +209,7 @@ class Game:
         # Decide the starter
         self.start_index = (self.big_blind_i + 1) % self.player_count
         self.active = self.active[self.start_index:] + self.active[:self.start_index] # Set the starter at the beginning of the active list
+        self.players = self.active
 
         return self.active
 
@@ -188,25 +227,31 @@ class Game:
         for person in self.active:
             # Check or bet
             if self.ante == person.bet:
-                res = self.check_bet(person)
+                # Check if player is playable
+                if person.playable == True:
+                    res = self.check_bet(person)
+                else:
+                    res = person.non_playable_input("cb", 0)
             # All-in
             elif person.balance <= self.ante:
-                res = self.all_in(person)
+                # Check if player is playable
+                if person.playable == True:
+                    res = self.all_in(person)
+                else:
+                    res = person.non_playable_input("ai", 0)
             # Call or raise
             else:
-                res = self.call_raise(person, self.ante)
+                # Check if player is playable
+                if person.playable == True:
+                    res = self.call_raise(person)
+                else:
+                    res = person.non_playable_input("cr", self.ante)
             
             # Person pays the amount
             self.pay(person, res[0])
             self.ante += res[1]
 
-            # Create a new pot for all-ins
             if person.balance == 0:
-                try:
-                    self.pots[person.total] += self.pot
-                except KeyError:
-                    self.pots[person.total] = self.pot
-                self.pot = 0
                 person.all_in = True
             
             # Return if all have folded

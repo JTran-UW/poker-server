@@ -1,32 +1,12 @@
-from card import Card
 from game import Game
-from player import Player
 from table import Table
 
 # ===================================================== STAGE 1: SETUP ===========================================
 
-# Generate players
-names = ["Larry", "Moe", "Eric", "Joe"]
-p = list()
-for name in names:
-    p.append(Player(name))
-
-# Generate cards
-nums = [0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8]
-suits = ["diamonds", "hearts", "spades", "clubs"]
-cards = list()
-
-for num in nums:
-    for suit in suits:
-        cards.append(Card(num, suit))
-
-# Blinds
-b = (100, 200)
-
 # Activate game
-g = Game(p, cards)
+g = Game()
 t = Table()
-not_paid = g.start_round(True, b)
+not_paid = g.start_round(True)
 cards = g.cards
 active = not_paid
 all_in = list()
@@ -39,7 +19,7 @@ while g.round_num < 5 and len(active) > 1:
 
     # Important variables
     if g.round_num == 1:
-        ante = b[1]
+        ante = g.blinds[1]
     else:
         ante = 0
     g.round_num += 1
@@ -59,6 +39,10 @@ while g.round_num < 5 and len(active) > 1:
         not_paid = [person for person in active if person in not_paid]
         not_paid = [person for person in not_paid if person not in all_in]
 
+    # Divide up the pot
+    payments = list(set([person.bet for person in active]))
+    g.pot_payments(payments, active)
+
     # Get the cards to table
     if g.round_num == 2:
         show = t.show_card(cards, 3)
@@ -69,9 +53,6 @@ while g.round_num < 5 and len(active) > 1:
     elif g.round_num == 4:
         show = t.show_card(cards, 1)
         show_name = "river"
-    elif g.round_num == 5:
-        if g.pot != 0:
-            g.pots[g.pot/len(active)] = g.pot
 
     # Print the cards
     if g.round_num < 5:
@@ -93,20 +74,24 @@ while g.round_num < 5 and len(active) > 1:
 
 print("\n")
 
+# Remove placeholder pot
+g.pots.pop(0)
+
 # For a fold-out
 if len(active) == 1:
     winner = active[0]
-    pot_total = g.pot
+    pot_total = sum([pot.amount for pot in g.pots])
     print(f"{winner.name} wins {pot_total}")
 
 # Go to the hands for a decision
 else:
     # Loop through pots
     for i, pot in enumerate(g.pots):
+        print(f"Pot #{i + 1}")
         contenders = dict()
-        eligible = [player for player in active if player.total >= pot]
+        eligible = [player for player in active if player in pot.assoc_ps]
 
-        for player in active:
+        for player in eligible:
             # Get each players hand values
             hand = player.hand_value(t.table)
             contenders[hand[0]] = player
@@ -122,7 +107,7 @@ else:
         winner = contenders[winner_key]
 
         # Update balances
-        pot_total = g.pots[pot]
+        pot_total = pot.amount
         winner.update_balance(pot_total)
 
         print(f"{winner.name} wins ${pot_total}!")
