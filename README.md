@@ -4,26 +4,26 @@
 Opens up game of Texas hold-em poker, plays one round.
 
 ### Objects:
-** Card **
+**Card**
 Attributes:
  - face: card face value (i.e. 2, 3, 4, 5, etc.)
  - suit: card suit value (Spade, Hearts, etc.)
  - face_name: card face value name (11 = Jack, 12 = Queen, etc.)
  - name: name of card in full, in form face_name + of suit (Jack of Diamonds)
 
-** Table **
+**Table**
 Attributes:
  - table: all cards put on table (flop, river, etc.)
 Methods:
  - show_card(temp_cards, n)
     puts n cards on table out of temp_cards
 
-** Pot **
+**Pot**
 Attributes:
  - amount: amount of money in pot
  - assoc_ps: players who have paid enough to be eligble for pot
 
-** Player **
+**Player**
 Attributes:
  - name: name of player
  - status: active status of player (boolean)
@@ -44,7 +44,7 @@ Methods:
  - non_playable_input(intype, ante)
     simulates user input, looking for input type intype, given the ante
 
-** Game **
+**Game**
 Attributes:
  - players: all players in game
  - player_count: number of players in game
