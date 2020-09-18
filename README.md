@@ -41,6 +41,12 @@ Methods:
     searches for object in interative obj that repeats n times
  - hand_value(table)  
     gathers value of hand given the five cards on the table
+ - zero_bets()  
+    zeros out player bet
+ - update_balance(amount)  
+    updates player balance by some amount
+ - fold()  
+    updates player status to false
  - non_playable_input(intype, ante)  
     simulates user input, looking for input type intype, given the ante
 
