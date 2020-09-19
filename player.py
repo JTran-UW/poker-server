@@ -12,6 +12,7 @@ class Player:
         self.balance = 10000
         self.bet = 0
         self.total = 0
+        # !! Used for single player
         if self.name == "Larry":
             self.playable = True
         else:
@@ -30,6 +31,10 @@ class Player:
         # Players cannot have the same card
         temp_cards.remove(card1)
         temp_cards.remove(card2)
+
+        # !! Used for single player
+        if self.name == "Larry":
+            print(f"You have {[card.name for card in self.hand]}")
 
         return temp_cards
 

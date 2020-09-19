@@ -2,6 +2,7 @@ from random import randint
 from player import Player
 from pot import Pot
 from card import Card
+from table import Table
 
 class Game:
     def __init__(self):
@@ -17,6 +18,7 @@ class Game:
         self.pots = [Pot()]
         self.pots_i = 0
         self.blinds = (100, 200)
+        self.table = Table()
 
     def pay(self, player, amount):
         """
@@ -115,7 +117,7 @@ class Game:
         return: [amount paid, amount the ante is raised by] (type: list)
         """
         # Report player's current bet
-        print(f"{player.name}'s turn (${player.bet} bet so far)")
+        print(f"Your turn (${player.bet} bet so far)")
 
         while True: # Keep asking until answer is valid
             # Ask user input
@@ -149,7 +151,7 @@ class Game:
         return: [amount paid, amount the ante is raised by] (type: list)
         """
         # Report player's current bet
-        print(f"{player.name}'s turn (${player.bet} bet so far)")
+        print(f"Your turn (${player.bet} bet so far)")
 
         while True: # Keep asking until answer is valid
             # Ask user input
@@ -182,7 +184,7 @@ class Game:
         return: amount paid (type: int)
         """
         # Report player's current bet
-        print(f"{player.name}'s turn (${player.bet} bet so far)")
+        print(f"Your turn (${player.bet} bet so far)")
 
         while True: # Keep asking until answer is valid
             # Ask user input
@@ -265,13 +267,15 @@ class Game:
 
         return self.result
     
-    def determine_winner(self, table, active):
+    def determine_winner(self, active):
         """
         Loop through each pot, determine the person with the highest hand value, award them the pot value
-        table: table object for this game (type: Table)
         active: list of active players (type: list)
         return: winner message to print (type: str)
         """
+        # Remove placeholder pot
+        self.pots.pop(0)
+
         # Loop through pots
         for i, pot in enumerate(self.pots):
             print(f"Pot #{i + 1}")
@@ -279,7 +283,7 @@ class Game:
 
             for player in eligible:
                 # Get each players hand values
-                player.get_hand_value(table.table)
+                player.get_hand_value(self.table.table)
 
                 # Print the hand values
                 print(f"{player.name} has {player.hand_name} (", end = "")
@@ -303,7 +307,78 @@ class Game:
         last_player: last player standing (type: Player)
         return: winner message to print (type: str)
         """
+        # Remove placeholder pot
+        self.pots.pop(0)
+
         winner = last_player
         pot_total = sum([pot.amount for pot in self.pots])
 
         return f"{winner.name} wins {pot_total}"
+
+    def run_round(self):
+        """
+        Run a single round, 5 rounds of betting or until everyone has folded or went all-in
+        return: all players who finished the round active (type: list)
+        """
+        active = self.start_round(True)
+        all_in = list()
+
+        # Keep playing rounds while the 5th street hasn't been shown / there are more than 1 players
+        while self.round_num < 5 and len(self.active) > 1:
+            print(f"\nRound #{self.round_num}")
+
+            # Important variables
+            if self.round_num == 1:
+                ante = self.blinds[1]
+            else:
+                ante = 0
+            self.round_num += 1
+            not_paid = [person for person in active if person not in all_in]
+
+            # Run betting
+
+            while len(not_paid) > 0:
+
+                # Run betting
+                betting = self.run_betting(ante, not_paid)
+                active = betting["active"]
+                all_in = betting["all_in"]
+                not_paid = betting["not_paid"]
+                ante = betting["ante"]
+
+                # Player who haven't folded / paid the ante
+                not_paid = [person for person in active if person in not_paid]
+                not_paid = [person for person in not_paid if person not in all_in]
+
+            # Divide up the pot
+            payments = list(set([person.bet for person in active]))
+            self.pot_payments(payments, active)
+
+            # Get the cards to table
+            if self.round_num == 2:
+                show = self.table.show_card(self.cards, 3)
+                show_name = "flop"
+            elif self.round_num == 3:
+                show = self.table.show_card(self.cards, 1)
+                show_name = "turn"
+            elif self.round_num == 4:
+                show = self.table.show_card(self.cards, 1)
+                show_name = "river"
+
+            # Print the cards
+            if self.round_num < 5:
+                choices = show[0]
+                cards = show[1]
+
+                print(f"\nThe {show_name}: ", end="")
+                for i, card in enumerate(choices):
+                    if i == len(choices) - 1:
+                        print(card.name)
+                    else:
+                        print(card.name, end=", ")
+            
+            # Zero the bets
+            for person in active:
+                person.zero_bets()
+        
+        return self.active
