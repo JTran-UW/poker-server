@@ -264,3 +264,46 @@ class Game:
                 return self.result
 
         return self.result
+    
+    def determine_winner(self, table, active):
+        """
+        Loop through each pot, determine the person with the highest hand value, award them the pot value
+        table: table object for this game (type: Table)
+        active: list of active players (type: list)
+        return: winner message to print (type: str)
+        """
+        # Loop through pots
+        for i, pot in enumerate(self.pots):
+            print(f"Pot #{i + 1}")
+            eligible = [player for player in active if player in pot.assoc_ps]
+
+            for player in eligible:
+                # Get each players hand values
+                player.get_hand_value(table.table)
+
+                # Print the hand values
+                print(f"{player.name} has {player.hand_name} (", end = "")
+                for card in player.hand_cards[:-1]:
+                    print(card, end = ", ")
+                print(f"{player.hand_cards[-1]})")
+            
+            # Determine who had the best hand
+            contenders = sorted(eligible, key = lambda player: player.hand_value)
+            winner = contenders[-1]
+
+            # Update balances
+            pot_total = pot.amount
+            winner.update_balance(pot_total)
+
+            return f"{winner.name} wins ${pot_total}!"
+    
+    def fold_out(self, last_player):
+        """
+        Award all pots to last player standing during fold-out
+        last_player: last player standing (type: Player)
+        return: winner message to print (type: str)
+        """
+        winner = last_player
+        pot_total = sum([pot.amount for pot in self.pots])
+
+        return f"{winner.name} wins {pot_total}"

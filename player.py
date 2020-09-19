@@ -68,7 +68,7 @@ class Player:
         
         return counter
 
-    def hand_value(self, table):
+    def get_hand_value(self, table):
         """
         Get value of hand
         table: five cards on table
@@ -158,7 +158,9 @@ class Player:
 
         top_combo = [card.name for card in top_combo_cards]
 
-        return [top_hand_key, top_combo_name, top_combo]
+        self.hand_value = top_hand_key
+        self.hand_name = top_combo_name
+        self.hand_cards = top_combo
 
     def zero_bets(self):
         """
@@ -193,16 +195,16 @@ class Player:
 
         # If response is check or bet
         if intype == "cb":
-            # 60% chance of check
-            if self.seed < 0.6:
+            # 70% chance of check
+            if self.seed < 0.7:
                 print(f"{self.name} checked")
                 return [0, 0]
-            # 10% chance of bet
-            elif self.seed < 0.7:
+            # 20% chance of bet
+            elif self.seed < 0.9:
                 self.bet_amount = randrange(10) * 100
                 print(f"{self.name} bet ${self.bet_amount}")
                 return [self.bet_amount, self.bet_amount]
-            # 30% chance of fold
+            # 10% chance of fold
             else:
                 self.fold()
                 print(f"{self.name} folded")
@@ -210,16 +212,16 @@ class Player:
 
         # If response is call or raise
         elif intype == "cr":
-            # 60% chance of call
-            if self.seed < 0.6:
+            # 70% chance of call
+            if self.seed < 0.7:
                 print(f"{self.name} called")
                 return [ante - self.bet, 0]
-            # 10% chance of raise
-            elif self.seed < 0.6:
+            # 20% chance of raise
+            elif self.seed < 0.9:
                 self.raise_amount = randrange(10) * 100
                 print(f"{self.name} raised by {self.raise_amount}")
                 return [self.raise_amount, self.raise_amount]
-            # 30% chance of fold
+            # 10% chance of fold
             else:
                 self.fold()
                 print(f"{self.name} folded")

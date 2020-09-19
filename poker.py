@@ -4,25 +4,25 @@ from table import Table
 # Setup
 
 # Activate game
-g = Game()
-t = Table()
-not_paid = g.start_round(True)
-cards = g.cards
+poker = Game()
+table = Table()
+not_paid = poker.start_round(True)
+cards = poker.cards
 active = not_paid
 all_in = list()
 
 # Play one round
 
 # Keep playing rounds while the 5th street hasn't been shown / there are more than 1 players
-while g.round_num < 5 and len(active) > 1:
-    print(f"\nRound #{g.round_num}")
+while poker.round_num < 5 and len(active) > 1:
+    print(f"\nRound #{poker.round_num}")
 
     # Important variables
-    if g.round_num == 1:
-        ante = g.blinds[1]
+    if poker.round_num == 1:
+        ante = poker.blinds[1]
     else:
         ante = 0
-    g.round_num += 1
+    poker.round_num += 1
     not_paid = [person for person in active if person not in all_in]
 
     # Run betting
@@ -30,7 +30,7 @@ while g.round_num < 5 and len(active) > 1:
     while len(not_paid) > 0:
 
         # Run betting
-        betting = g.run_betting(ante, not_paid)
+        betting = poker.run_betting(ante, not_paid)
         active = betting["active"]
         all_in = betting["all_in"]
         not_paid = betting["not_paid"]
@@ -42,21 +42,21 @@ while g.round_num < 5 and len(active) > 1:
 
     # Divide up the pot
     payments = list(set([person.bet for person in active]))
-    g.pot_payments(payments, active)
+    poker.pot_payments(payments, active)
 
     # Get the cards to table
-    if g.round_num == 2:
-        show = t.show_card(cards, 3)
+    if poker.round_num == 2:
+        show = table.show_card(cards, 3)
         show_name = "flop"
-    elif g.round_num == 3:
-        show = t.show_card(cards, 1)
+    elif poker.round_num == 3:
+        show = table.show_card(cards, 1)
         show_name = "turn"
-    elif g.round_num == 4:
-        show = t.show_card(cards, 1)
+    elif poker.round_num == 4:
+        show = table.show_card(cards, 1)
         show_name = "river"
 
     # Print the cards
-    if g.round_num < 5:
+    if poker.round_num < 5:
         choices = show[0]
         cards = show[1]
 
@@ -76,39 +76,14 @@ while g.round_num < 5 and len(active) > 1:
 print("\n")
 
 # Remove placeholder pot
-g.pots.pop(0)
+poker.pots.pop(0)
 
 # For a fold-out
 if len(active) == 1:
-    winner = active[0]
-    pot_total = sum([pot.amount for pot in g.pots])
-    print(f"{winner.name} wins {pot_total}")
+    winner = poker.fold_out(active[0])
 
 # Go to the hands for a decision
 else:
-    # Loop through pots
-    for i, pot in enumerate(g.pots):
-        print(f"Pot #{i + 1}")
-        contenders = dict()
-        eligible = [player for player in active if player in pot.assoc_ps]
+    winner = poker.determine_winner(table, active)
 
-        for player in eligible:
-            # Get each players hand values
-            hand = player.hand_value(t.table)
-            contenders[hand[0]] = player
-
-            # Print the hand values
-            print(f"{player.name} has {hand[1]} (", end="")
-            for card in hand[2][:-1]:
-                print(card, end=", ")
-            print(f"{hand[2][-1]})")
-        
-        # Determine who had the best hand
-        winner_key = max(contenders.keys())
-        winner = contenders[winner_key]
-
-        # Update balances
-        pot_total = pot.amount
-        winner.update_balance(pot_total)
-
-        print(f"{winner.name} wins ${pot_total}!")
+print(winner)
