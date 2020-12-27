@@ -1,4 +1,4 @@
-# poker-server
+# Poker Server
 ## server side of poker project
 
 Opens up game of Texas hold-em poker with four players (your default name is "Larry"), plays one round in a text client.
@@ -6,5 +6,5 @@ Opens up game of Texas hold-em poker with four players (your default name is "La
 ## Quickstart
 This project requires Python 3
 
-Start the client in a terminal in the root directory
+Start the client in a terminal in the root directory\
 `python poker.py`
