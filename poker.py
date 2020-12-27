@@ -1,4 +1,4 @@
-from game import Game
+from server.game import Game
 
 # Activate game
 poker = Game()
